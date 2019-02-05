@@ -1,9 +1,9 @@
 // http://www.letskorail.com/ebizprd/EbizPrdTicketPr21111_i1.do
 
 function injectJs(srcFile) {
-    var scr = document.createElement('script');
-    scr.src = srcFile;
-    document.getElementsByTagName('head')[0].appendChild(scr);
+	var scr = document.createElement('script');
+	scr.src = srcFile;
+	document.getElementsByTagName('head')[0].appendChild(scr);
 }
 
 function redirectPage(href) {
@@ -15,12 +15,20 @@ function redirectPage(href) {
 	}
 }
 
+var agreementSrc = "/ebizprd/EbizPrdTicketPr21100W_pr21142.do";
+if (document.URL.indexOf(agreementSrc) != -1) {
+	$(document).ready(function() {
+		$("p.btn_c > a")[0].click();
+	});
+}
 var dsturl1 = "http://www.letskorail.com/ebizprd/EbizPrdTicketPr21111_i1.do";
 var dsturl2 = "http://www.letskorail.com/ebizprd/EbizPrdTicketpr21100W_pr21110.do";
+var dsturl3 = "http://www.letskorail.com/ebizprd/EbizPrdTicketPrConditionalList.do";
 if (document.URL.substring(0, dsturl1.length) == dsturl1 ||
-	document.URL.substring(0, dsturl2.length) == dsturl2) {
+	document.URL.substring(0, dsturl2.length) == dsturl2 ||
+	document.URL.substring(0, dsturl3.length) == dsturl3) {
 
-	$(document).ready(function() {
+	$(document).ready(function () {
 		injectJs(chrome.extension.getURL('inject.js'));
 
 		var coachSelected = JSON.parse(localStorage.getItem('coachSelected'));
@@ -31,15 +39,15 @@ if (document.URL.substring(0, dsturl1.length) == dsturl1 ||
 		console.log("first:" + firstSelected);
 
 		if (localStorage.getItem('macro') == "true") {
-			$(".btn_inq").append('<a href="#" onclick="macrostop();" style="font-size:15px; margin-left:5px;"><img src="' + chrome.extension.getURL('btn_stop.png') + '"></a>');
-			
+			$(".btn_inq").append('<a href="javascript:macrostop()"><img src="' + chrome.extension.getURL('btn_stop.png') + '"></a>');
+
 		} else {
-			$(".btn_inq").append('<a href="#" onclick="macro();" style="font-size:15px; margin-left:5px;"><img src="' + chrome.extension.getURL('btn_start.png') + '"></a>');
+			$(".btn_inq").append('<a href="javascript:macro()"><img src="' + chrome.extension.getURL('btn_start.png') + '"></a>');
 		}
 
 		// 테이블에 "매크로" 버튼을 삽입한다.
 		if ($("#divResult").length != 0) {
-			var rows = $('#divResult > table.tbl_h tr');
+			var rows = $('#divResult table.tbl_h tr');
 			for (i = 1; i < rows.length; i++) {
 				var columns = $(rows[i]).children('td');
 				var first = $(columns[4]);
@@ -47,20 +55,19 @@ if (document.URL.substring(0, dsturl1.length) == dsturl1 ||
 				if (coach.children().length > 0) {
 					coach.append($("<p class='p5'></p>"));
 					var checkbox = $("<label></label>").html('<input type="checkbox" name="checkbox" class="coachMacro" value="' + i + '">매크로');
-					checkbox.children('input').prop('checked', coachSelected.indexOf(i+"") > -1);
+					checkbox.children('input').prop('checked', coachSelected.indexOf(i + "") > -1);
 					coach.append(checkbox);
 				}
 				if (first.children().length > 0) {
 					first.append($("<p class='p5'></p>"));
 					var checkbox = $("<label></label>").html('<input type="checkbox" name="checkbox" class="firstMacro" value="' + i + '">매크로');
-					checkbox.children('input').prop('checked', firstSelected.indexOf(i+"") > -1);
+					checkbox.children('input').prop('checked', firstSelected.indexOf(i + "") > -1);
 					first.append(checkbox);
 				}
 			}
 		}
 
 		if (localStorage.getItem('macro') == "true") {
-
 			// Restore preferences
 			$("#peop01").val(localStorage.getItem('peop01'));
 			$("#peop02").val(localStorage.getItem('peop02'));
@@ -72,7 +79,7 @@ if (document.URL.substring(0, dsturl1.length) == dsturl1 ||
 			$("#seat03").val(localStorage.getItem('seat03'));
 
 			if ($("#divResult").length != 0) {
-				var rows = $('#divResult > table.tbl_h tr');
+				var rows = $('#divResult table.tbl_h tr');
 
 				var succeed = false;
 				for (i = 1; i < rows.length; i++) {
@@ -81,7 +88,7 @@ if (document.URL.substring(0, dsturl1.length) == dsturl1 ||
 					var first = $(columns[4]);
 					var coach = $(columns[5]);
 
-					if (coachSelected.indexOf(i+"") > -1) {
+					if (coachSelected.indexOf(i + "") > -1) {
 						var coachSpecials = coach.children("a");
 						if (coachSpecials.length != 0) {
 							for (j = 0; j < coachSpecials.length; j++) {
@@ -92,12 +99,18 @@ if (document.URL.substring(0, dsturl1.length) == dsturl1 ||
 									succeed = true;
 									break;
 								}
+								else if (src == "/docs/2007/img/persent/btn4000.gif" || src == "/docs/2007/img/persent/btn3000.gif") {
+									console.log("print");
+									location.href = $(coachSpecials[j]).attr('href');
+									succeed = true;
+									break;
+								}
 							}
 							if (succeed == true) break;
 						}
 					}
 
-					if (firstSelected.indexOf(i+"") > -1) {
+					if (firstSelected.indexOf(i + "") > -1) {
 						var firstSpecials = first.children("a");
 						if (firstSpecials.length != 0) {
 							for (j = 0; j < firstSpecials.length; j++) {
@@ -105,6 +118,12 @@ if (document.URL.substring(0, dsturl1.length) == dsturl1 ||
 								src = $(img).attr('src');
 								if (src == "/docs/2007/img/common/icon_apm_bl.gif" || src == "/docs/2007/img/common/icon_apm_rd.gif") {
 									redirectPage($(coachSpecials[j]).attr('href'));
+									succeed = true;
+									break;
+								}
+								else if (src == "/docs/2007/img/persent/btn4000.gif" || src == "/docs/2007/img/persent/btn3000.gif") {
+									console.log("print");
+									location.href = $(coachSpecials[j]).attr('href');
 									succeed = true;
 									break;
 								}
@@ -126,11 +145,11 @@ if (document.URL.substring(0, dsturl1.length) == dsturl1 ||
 					localStorage.removeItem('seat01');
 					localStorage.removeItem('seat02');
 					localStorage.removeItem('seat03');
-					chrome.extension.sendMessage({type: 'playSound'}, function(data) { });
+					chrome.extension.sendMessage({ type: 'playSound' }, function (data) { });
 				} else {
 					// 모두 실패한 경우
-					setTimeout(function() { 
-					location.href = "javascript:inqSchedule();";
+					setTimeout(function () {
+						location.href = "javascript:inqSchedule();";
 					}, 500);
 				}
 			} else {
